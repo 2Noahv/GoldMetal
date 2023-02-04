@@ -5,12 +5,20 @@ using UnityEngine;
 public class PlayerMove : MonoBehaviour
 {
 	public GameManager gameManager;
+	public AudioClip audioJump;
+	public AudioClip audioAttack;
+	public AudioClip audioDamaged;
+	public AudioClip audioItem;
+	public AudioClip audioDie;
+	public AudioClip audioFinish;
 	public float maxSpeed;
 	public float jumpPower;
+
 	Rigidbody2D rigid;
     SpriteRenderer spriteRenderer;
     Animator anim;
 	CapsuleCollider2D capsulecollider;
+	AudioSource audioSource;
 
 	void Awake()
     {
@@ -18,7 +26,8 @@ public class PlayerMove : MonoBehaviour
 		spriteRenderer = GetComponent<SpriteRenderer>();
 		anim = GetComponent<Animator>();
 		capsulecollider = GetComponent<CapsuleCollider2D>();
-	}
+		audioSource = GetComponent<AudioSource>();	
+	}	
 
     //1초에 60번, 단발적인 키 입력은 여기서 하자
 	void Update()
@@ -27,7 +36,8 @@ public class PlayerMove : MonoBehaviour
 		if (Input.GetButtonDown("Jump") && !anim.GetBool("isJumping")) {
 			rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
             anim.SetBool("isJumping", true);
-        }
+			PlaySound("JUMP");
+		}
 
 		if (Input.GetButtonUp("Horizontal")) {
             //normalize: 벡터 크기를 1로 만든 상태(단위벡터)
@@ -49,7 +59,7 @@ public class PlayerMove : MonoBehaviour
 	//1초에 50회 정도
 	void FixedUpdate()
     {
-        //Move bt key control
+        //Move by key control
         float h = Input.GetAxisRaw("Horizontal");
         rigid.AddForce(Vector2.right * h, ForceMode2D.Impulse);
 
@@ -72,7 +82,7 @@ public class PlayerMove : MonoBehaviour
 			if (null != rayHit.collider)
 			{
 				//distance: Ray에 닿았을 때의 거리
-				if (0.5f > rayHit.distance)
+				if (1f > rayHit.distance)
 					anim.SetBool("isJumping", false);
 			}
 		}
@@ -110,10 +120,16 @@ public class PlayerMove : MonoBehaviour
 
 			//Deactive Item
 			collision.gameObject.SetActive(false);
+
+			//Sound
+			PlaySound("ITEM");
 		}
-		else if ("Finish" == collision.gameObject.tag) { 
+		else if ("Finish" == collision.gameObject.tag) {
+			
 			//Next Stage
 			gameManager.NextStage();
+			//Sound
+			PlaySound("FINISH");
 		}
 	}
 
@@ -128,6 +144,7 @@ public class PlayerMove : MonoBehaviour
 		//Enemy Die
 		EnemyMove enemyMove = enemy.GetComponent<EnemyMove>();
 		enemyMove.OnDamaged();
+		PlaySound("ATTACK");
 	}
 
 	void OnDamager(Vector2 targetPos)
@@ -148,7 +165,11 @@ public class PlayerMove : MonoBehaviour
 		//Animation
 		anim.SetTrigger("doDamaged");
 
+		PlaySound("DAMAGED");
+
 		Invoke("OffDamaged", 2);
+
+		
 	}
 
 	void OffDamaged()
@@ -166,6 +187,36 @@ public class PlayerMove : MonoBehaviour
 		//Collider Disable
 		capsulecollider.enabled = false;
 		//Die Effect Jump
-		rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);		
+		rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
+		PlaySound("DIE");
+	}
+
+	public void VelocityZero()
+	{
+		rigid.velocity = Vector2.zero;
+	}
+
+	void PlaySound(string action)
+	{
+		switch (action) {
+			case "JUMP":
+				audioSource.clip = audioJump;
+				break;
+			case "ATTACK":
+				audioSource.clip = audioAttack;
+				break;
+			case "DAMAGED":
+				audioSource.clip = audioDamaged;
+				break;
+			case "ITEM":
+				audioSource.clip = audioItem;
+				break;
+			case "DIE":
+				audioSource.clip = audioDie;
+				break;
+			case "FINISH":
+				audioSource.clip = audioFinish;
+				break;
+		}
 	}
 }
