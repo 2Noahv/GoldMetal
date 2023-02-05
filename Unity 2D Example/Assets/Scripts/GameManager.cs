@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("게임 클리어!");
 			//Restart Button UI
 			Text btnText = UIRestartBtn.GetComponentInChildren<Text>();
-            btnText.text = "Game Clear!";
+            btnText.text = "Clear!";
             UIRestartBtn.SetActive(true);
 		}
 
