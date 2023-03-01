@@ -71,10 +71,20 @@ public class TalkManager : MonoBehaviour
 	//지정된 대화 문장을 반환하는 함수 하나 생성
 	public string GetTalk(int id, int talkIndex)
 	{
+		//ContainsKey: Dictionary에 Key가 존재하는지 검사
+		//반환 값이 있는 재귀함수는 return까지 꼭 써주어야 함
+		if (!talkData.ContainsKey(id)) {
+			if (!talkData.ContainsKey(id - id % 10))
+				return GetTalk(id - id % 100, talkIndex); //Get First Talk		
+			else
+				GetTalk(id - id % 10, talkIndex); //Get First Quest Talk
+		}
+
 		if (talkIndex == talkData[id].Length)
 			return null;
 		else
 			return talkData[id][talkIndex];
+
 	}
 
 	//지정된 초상화 스프라이트를 반환할 함수 생성
